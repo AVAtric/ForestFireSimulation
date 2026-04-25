@@ -10,11 +10,13 @@ const int WIDTH = 1024;
 const int HEIGHT = 1024;
 
 const double START_GROWTH = 0.5;
+
 const float DEFAULT_FIRE = 0.0001;
 const float DEFAULT_GROWTH = 0.03;
 
 const bool SPEED_CONTROL = false;
 const bool STEP_ANIMATION = false;
+
 const float FPS_LIMIT = 15.0f;
 
 const ImVec4 CLEAR_COLOR = {0.94f, 0.94f, 0.94f, 1.00f};

@@ -18,7 +18,7 @@ add_library(imgui
         ${imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer2.h ${imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer2.cpp)
 
 target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR})
-target_include_directories(imgui PRIVATE ${SDL2_HEAD})
-target_link_libraries(imgui PUBLIC ${SDL2_LIB})
+target_include_directories(imgui PRIVATE ${SDL2_INCLUDE_DIRS})
+target_link_libraries(imgui PUBLIC ${SDL2_LIBRARIES})
 
 FetchContent_MakeAvailable(imgui)

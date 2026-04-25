@@ -50,6 +50,7 @@ int main(int, char **) {
         Uint32 startTicks = SDL_GetTicks();
         Uint64 startPerf = SDL_GetPerformanceCounter();
         SDL_Event event;
+
         while (SDL_PollEvent(&event)) {
             ImGui_ImplSDL2_ProcessEvent(&event);
             if (event.type == SDL_QUIT)
@@ -75,6 +76,7 @@ int main(int, char **) {
         ImGui::NewFrame();
 
         mainMenu();
+
         initSettings(lastHeight, lastWidth, lastSize);
 
         if ((currentStep == maxSteps) && startMeasure) {
@@ -152,19 +154,21 @@ int main(int, char **) {
             ImGui::SetNextItemWidth(100);
 
             if (ImGui::ColorPicker4("Tree", (float *) &pickerTreeColor,
-                                    ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoInputs,
+                                    ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_HDR,
                                     (float *) &RESET_TREE_COLOR))
-                treeColor = {(unsigned char) (pickerTreeColor.x * 255.0), (unsigned char) (pickerTreeColor.y * 255.0),
-                             (unsigned char) (pickerTreeColor.z * 255.0), DEFAULT_TREE_COLOR.a};
+                treeColor = {static_cast<unsigned char>(pickerTreeColor.x * 255.0),
+                             static_cast<unsigned char>(pickerTreeColor.y * 255.0),
+                             static_cast<unsigned char>(pickerTreeColor.z * 255.0), DEFAULT_TREE_COLOR.a};
 
             ImGui::SameLine();
             ImGui::SetNextItemWidth(100);
 
             if (ImGui::ColorPicker4("Fire", (float *) &pickerFireColor,
-                                    ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoInputs,
+                                    ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_HDR,
                                     (float *) &RESET_FIRE_COLOR))
-                fireColor = {(unsigned char) (pickerFireColor.x * 255.0), (unsigned char) (pickerFireColor.y * 255.0),
-                             (unsigned char) (pickerFireColor.z * 255.0), DEFAULT_FIRE_COLOR.a};
+                fireColor = {static_cast<unsigned char>(pickerFireColor.x * 255.0),
+                             static_cast<unsigned char>(pickerFireColor.y * 255.0),
+                             static_cast<unsigned char>(pickerFireColor.z * 255.0), DEFAULT_FIRE_COLOR.a};
 
             ImGui::End();
         }
@@ -184,8 +188,10 @@ int main(int, char **) {
         ImGui::Render();
 
         SDL_RenderSetScale(renderer, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
-        SDL_SetRenderDrawColor(renderer, (Uint8) (clearColor.x * 255), (Uint8) (clearColor.y * 255),
-                               (Uint8) (clearColor.z * 255), (Uint8) (clearColor.w * 255));
+        SDL_SetRenderDrawColor(renderer, static_cast<int>(clearColor.x * 255),
+                               static_cast<int>(clearColor.y * 255),
+                               static_cast<int>(clearColor.z * 255),
+                               static_cast<int>(clearColor.w * 255));
 
         SDL_RenderClear(renderer);
 
@@ -201,12 +207,12 @@ int main(int, char **) {
         auto endPerf = SDL_GetPerformanceCounter();
 
         measurements.framePerf = endPerf - startPerf;
-        measurements.fps = 1 / (((float) endTicks - (float) startTicks) / 1000.0f);
+        measurements.fps = 1 / ((static_cast<float>(endTicks) - static_cast<float>(startTicks)) / 1000.0f);
         totalFrameTicks += endTicks - startTicks;
-        measurements.avg = 1000.0f / ((float) totalFrameTicks / (float) totalFrames);
+        measurements.avg = 1000.0f / (static_cast<float>(totalFrameTicks) / static_cast<float>(totalFrames));
 
         if (limitAnimation) {
-            auto dT = ((float) endTicks - (float) lastUpdate) / 1000.0f;
+            auto dT = (static_cast<float>(endTicks) - static_cast<float>(lastUpdate)) / 1000.0f;
             auto framesToUpdate = static_cast<int>(floor(dT / (1.0f / currentSpeed)));
 
             if (framesToUpdate > 0) {
