@@ -17,8 +17,12 @@ add_library(imgui
         ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.h ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer2.h ${imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer2.cpp)
 
-target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR})
+target_include_directories(imgui SYSTEM PUBLIC ${imgui_SOURCE_DIR})
 target_include_directories(imgui PRIVATE ${SDL2_INCLUDE_DIRS})
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(imgui PRIVATE -Wno-nontrivial-memcall)
+endif ()
 target_link_libraries(imgui PUBLIC ${SDL2_LIBRARIES})
 
 FetchContent_MakeAvailable(imgui)

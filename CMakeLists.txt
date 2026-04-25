@@ -16,17 +16,17 @@ include(FindPkgConfig)
 
 # --- Simulation core (no SDL/ImGui, used by tests too) -----------------------
 set(FORESTFIRE_CORE_SOURCES
-        OpenMPBackend.cpp
-        OpenCLBackend.cpp
-        GPUBackend.cpp)
+        src/core/OpenMPBackend.cpp
+        src/core/OpenCLBackend.cpp
+        src/core/GPUBackend.cpp)
 
 if (APPLE AND FORESTFIRE_ENABLE_METAL)
     enable_language(OBJCXX)
-    list(APPEND FORESTFIRE_CORE_SOURCES MetalBackend.mm)
+    list(APPEND FORESTFIRE_CORE_SOURCES src/core/MetalBackend.mm)
 endif ()
 
 add_library(ForestFireCore STATIC ${FORESTFIRE_CORE_SOURCES})
-target_include_directories(ForestFireCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(ForestFireCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/core)
 
 find_package(OpenMP)
 if (OpenMP_CXX_FOUND)
@@ -46,7 +46,7 @@ endif ()
 
 if (APPLE AND FORESTFIRE_ENABLE_METAL)
     message(STATUS "Metal enabled - Metal backend will be preferred on macOS")
-    set_source_files_properties(MetalBackend.mm PROPERTIES
+    set_source_files_properties(src/core/MetalBackend.mm PROPERTIES
             COMPILE_FLAGS "-fobjc-arc"
             COMPILE_OPTIONS "-Wno-unused-command-line-argument")
     target_compile_definitions(ForestFireCore PUBLIC FORESTFIRE_HAS_METAL)
@@ -57,10 +57,11 @@ endif ()
 
 # --- Application -------------------------------------------------------------
 add_executable(${PROJECT_NAME}
-        main.cpp
-        Forest.cpp
-        GUI.cpp
-        MeasurementsLog.cpp)
+        src/app/main.cpp
+        src/app/App.cpp
+        src/app/GUI.cpp
+        src/app/MeasurementsLog.cpp)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/app)
 target_link_libraries(${PROJECT_NAME} PRIVATE ForestFireCore)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")

@@ -154,17 +154,20 @@ Each per-backend probe (`MTLCreateSystemDefaultDevice` for Metal, `clGetPlatform
 ```
 .
 ├── CMakeLists.txt          – top-level build, options, multiplatform SDL2/OpenMP/OpenCL
-├── Forest.h                – shared simulation types (CellState, NeighborhoodLogic, BackendKind, ForestGrid)
-├── Backend.h               – IBackend interface + factory functions
-├── OpenMPBackend.cpp       – CPU/OpenMP implementation of IBackend
-├── MetalBackend.mm         – Metal implementation (Apple only, ObjC++ with ARC)
-├── OpenCLBackend.cpp       – OpenCL implementation (only active when OpenCL is found)
-├── GPUBackend.cpp          – picks the preferred GPU backend at runtime
-├── App.h / Forest.cpp      – application/UI state (window, grid, current settings)
-├── GUI.h / GUI.cpp         – ImGui windows (settings, menu, backend combo)
-├── MeasurementsLog.h /
-│   MeasurementsLog.cpp     – ImGui log widget for benchmark output
-├── main.cpp                – SDL/ImGui main loop
+├── src/
+│   ├── core/               – simulation library (no SDL/ImGui), built as ForestFireCore
+│   │   ├── Forest.h        – shared types (CellState, NeighborhoodLogic, BackendKind, ForestGrid)
+│   │   ├── Backend.h       – IBackend interface + factory functions
+│   │   ├── OpenMPBackend.cpp  – CPU/OpenMP implementation
+│   │   ├── MetalBackend.mm    – Metal implementation (Apple only, ObjC++ with ARC)
+│   │   ├── OpenCLBackend.cpp  – OpenCL implementation (only active when OpenCL is found)
+│   │   └── GPUBackend.cpp     – picks the preferred GPU backend at runtime
+│   └── app/                – SDL/ImGui frontend, links against ForestFireCore
+│       ├── App.h / App.cpp           – application/UI state (window, grid, current settings)
+│       ├── GUI.h / GUI.cpp           – ImGui windows (settings, menu, backend combo)
+│       ├── MeasurementsLog.h /
+│       │   MeasurementsLog.cpp       – ImGui log widget for benchmark output
+│       └── main.cpp                  – SDL/ImGui main loop
 ├── tests/
 │   ├── CMakeLists.txt      – test target registered with CTest
 │   ├── test_framework.h    – tiny header-only assertion + runner
@@ -172,8 +175,8 @@ Each per-backend probe (`MTLCreateSystemDefaultDevice` for Metal, `clGetPlatform
 └── vendor/imgui            – Dear ImGui (fetched by CMake)
 ```
 
-The simulation core (`OpenMPBackend.cpp`, `OpenCLBackend.cpp`, `MetalBackend.mm`, `GPUBackend.cpp`, `Backend.h`, `Forest.h`) is built as a static library `ForestFireCore` so the test executable can link it without dragging in SDL2 or ImGui. The application sources (`Forest.cpp`, `GUI.cpp`, `MeasurementsLog.cpp`, `main.cpp`) link against the core and add the SDL/ImGui frontend.
+The simulation core under `src/core/` is built as a static library `ForestFireCore` and is the only thing the tests link against — no SDL2 or ImGui. The application code under `src/app/` links the core and adds the SDL/ImGui frontend.
 
 ## License
 
-No license file is provided. All rights reserved by the author.
+Released under the [MIT License](LICENSE).
