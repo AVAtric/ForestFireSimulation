@@ -1,6 +1,8 @@
+#include <chrono>
 #include <iostream>
-#include <random>
+#include <numeric>
 #include <queue>
+#include <random>
 #include <vector>
 
 #include <omp.h>
@@ -56,7 +58,7 @@ bool colorWindow{false};
 int currentStep{0};
 int maxSteps{0};
 
-float progressAllSteps(11111.0);
+float progressAllSteps{static_cast<float>(std::accumulate(std::begin(MEASUREMENT_STEPS), std::end(MEASUREMENT_STEPS), 0))};
 float progressCurrentStep{0.0};
 
 float fire{DEFAULT_FIRE};
@@ -72,7 +74,7 @@ bool limitAnimation{SPEED_CONTROL};
 bool stepwiseAnimation{STEP_ANIMATION};
 bool animationStep{STEP_ANIMATION};
 
-unsigned int lastFrame, lastUpdate;
+unsigned int lastUpdate;
 
 ImVec4 clearColor{CLEAR_COLOR};
 
@@ -81,13 +83,19 @@ std::vector<std::vector<CellState>> forest(currentWidth, std::vector<CellState>(
 std::priority_queue<int, std::vector<int>, std::greater<>> measureSteps;
 
 void initForest() {
-    std::mt19937 initRng(std::chrono::high_resolution_clock::now().time_since_epoch().count());
-    std::uniform_real_distribution<double> dist(0.0, 1.0);
+    auto maxThreads = omp_get_max_threads();
+    std::random_device rd;
+    std::vector<std::mt19937> rngs;
+    rngs.reserve(maxThreads);
+    for (int i = 0; i < maxThreads; ++i)
+        rngs.emplace_back(rd());
 
-#pragma omp parallel for collapse(2) default(none) shared(forest, START_GROWTH, currentWidth, currentHeight) private(dist, initRng)
+#pragma omp parallel for collapse(2) default(none) shared(forest, rngs, currentWidth, currentHeight, START_GROWTH)
     for (int i = 0; i < currentWidth; ++i)
-        for (int j = 0; j < currentHeight; ++j)
-            forest[i][j] = (dist(initRng) < START_GROWTH) ? TREE : EMPTY;
+        for (int j = 0; j < currentHeight; ++j) {
+            std::uniform_real_distribution<double> dist(0.0, 1.0);
+            forest[i][j] = (dist(rngs[omp_get_thread_num()]) < START_GROWTH) ? TREE : EMPTY;
+        }
 }
 
 
@@ -117,38 +125,42 @@ bool isFireNearby(int x, int y, NeighborhoodLogic logic) {
 }
 
 void stepForest(double p, double g) {
-    std::vector<std::vector<CellState>> newForest = forest;
+    static std::vector<std::vector<CellState>> nextForest(currentWidth, std::vector<CellState>(currentHeight, EMPTY));
+    if (static_cast<int>(nextForest.size()) != currentWidth ||
+        static_cast<int>(nextForest[0].size()) != currentHeight)
+        nextForest.assign(currentWidth, std::vector<CellState>(currentHeight, EMPTY));
 
-    // Prepare RNGs for each thread
-    auto maxThreads = omp_get_max_threads();
-    std::vector<std::mt19937> randomGens;
-    std::random_device rd;
+    static std::vector<std::mt19937> randomGens = [] {
+        auto maxThreads = omp_get_max_threads();
+        std::vector<std::mt19937> gens;
+        gens.reserve(maxThreads);
+        std::random_device rd;
+        for (int i = 0; i < maxThreads; ++i)
+            gens.emplace_back(rd());
+        return gens;
+    }();
 
-    for (int i = 0; i < maxThreads; ++i)
-        randomGens.emplace_back(rd());
-
-    std::uniform_real_distribution<double> dist(0.0, 1.0);
-
-#pragma omp parallel for collapse(2) default(none) shared(forest, newForest, currentLogic, p, g, randomGens, currentWidth, currentHeight) private(dist)
+#pragma omp parallel for collapse(2) default(none) shared(forest, nextForest, currentLogic, p, g, randomGens, currentWidth, currentHeight)
     for (int x = 0; x < currentWidth; ++x) {
         for (int y = 0; y < currentHeight; ++y) {
+            std::uniform_real_distribution<double> dist(0.0, 1.0);
             std::mt19937 &rngLocal = randomGens[omp_get_thread_num()];
 
-            if (forest[x][y] == FIRE) {
-                newForest[x][y] = EMPTY;
-            } else if (forest[x][y] == TREE) {
-                bool fireNearby = isFireNearby(x, y, currentLogic);
-
-                if (fireNearby || dist(rngLocal) < p)
-                    newForest[x][y] = FIRE;
-            } else if (forest[x][y] == EMPTY) {
-                if (dist(rngLocal) < g)
-                    newForest[x][y] = TREE;
+            switch (forest[x][y]) {
+                case FIRE:
+                    nextForest[x][y] = EMPTY;
+                    break;
+                case TREE:
+                    nextForest[x][y] = (isFireNearby(x, y, currentLogic) || dist(rngLocal) < p) ? FIRE : TREE;
+                    break;
+                case EMPTY:
+                    nextForest[x][y] = (dist(rngLocal) < g) ? TREE : EMPTY;
+                    break;
             }
         }
     }
 
-    forest = newForest;
+    forest.swap(nextForest);
 }
 
 void resetMeasure() {

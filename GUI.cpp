@@ -62,15 +62,10 @@ void initSettings(int &lastHeight, int &lastWidth, int &lastSize) {
                     currentItem = item;
                 if (isSelected)
                     ImGui::SetItemDefaultFocus();
-
-                if ((items[0] == currentItem) && (currentLogic == MOORE))
-                    currentLogic = VON_NEUMANN;
-                else if ((items[1] == currentItem) && (currentLogic == VON_NEUMANN))
-                    currentLogic = MOORE;
             }
-
             ImGui::EndCombo();
         }
+        currentLogic = (currentItem == items[1]) ? MOORE : VON_NEUMANN;
 
         ImGui::Separator();
 

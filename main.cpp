@@ -16,7 +16,6 @@ int main(int, char **) {
     auto lastHeight = currentHeight, lastWidth = currentWidth, lastSize = currentSize;
     auto start = std::chrono::high_resolution_clock::now();
 
-    lastFrame = 0;
     lastUpdate = SDL_GetTicks();
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
@@ -58,7 +57,7 @@ int main(int, char **) {
             if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE &&
                 event.window.windowID == SDL_GetWindowID(window))
                 running = false;
-            if (event.type == SDL_MOUSEBUTTONDOWN)
+            if (event.type == SDL_MOUSEBUTTONDOWN && !ImGui::GetIO().WantCaptureMouse)
                 if (event.button.button == SDL_BUTTON_LEFT) {
                     int x, y;
                     SDL_GetMouseState(&x, &y);
@@ -107,10 +106,8 @@ int main(int, char **) {
                 if (ImGui::SmallButton("Start")) {
                     if (!startMeasure) {
                         start = std::chrono::high_resolution_clock::now();
-                        measureSteps = std::priority_queue<int, std::vector<int>, std::greater<>>(MEASUREMENT_STEPS,
-                                                                                                  MEASUREMENT_STEPS +
-                                                                                                  sizeof(MEASUREMENT_STEPS) /
-                                                                                                  sizeof(MEASUREMENT_STEPS[0]));
+                        measureSteps = std::priority_queue<int, std::vector<int>, std::greater<>>(
+                                std::begin(MEASUREMENT_STEPS), std::end(MEASUREMENT_STEPS));
                         startMeasure = true;
                         nextSteps();
                         measurements.AddLog("[%s] Measurement started!\n", "info");
@@ -207,16 +204,18 @@ int main(int, char **) {
         auto endPerf = SDL_GetPerformanceCounter();
 
         measurements.framePerf = endPerf - startPerf;
-        measurements.fps = 1 / ((static_cast<float>(endTicks) - static_cast<float>(startTicks)) / 1000.0f);
+        auto frameMs = static_cast<float>(endTicks - startTicks);
+        measurements.fps = (frameMs > 0.0f) ? (1000.0f / frameMs) : 0.0f;
         totalFrameTicks += endTicks - startTicks;
-        measurements.avg = 1000.0f / (static_cast<float>(totalFrameTicks) / static_cast<float>(totalFrames));
+        measurements.avg = (totalFrameTicks > 0)
+                           ? (1000.0f * static_cast<float>(totalFrames) / static_cast<float>(totalFrameTicks))
+                           : 0.0f;
 
         if (limitAnimation) {
             auto dT = (static_cast<float>(endTicks) - static_cast<float>(lastUpdate)) / 1000.0f;
             auto framesToUpdate = static_cast<int>(floor(dT / (1.0f / currentSpeed)));
 
             if (framesToUpdate > 0) {
-                lastFrame += framesToUpdate;
                 lastUpdate = endTicks;
                 calculateForest = true;
             }
