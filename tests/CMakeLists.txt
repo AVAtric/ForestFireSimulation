@@ -1,0 +1,5 @@
+add_executable(forestfire_tests test_simulation.cpp)
+target_link_libraries(forestfire_tests PRIVATE ForestFireCore)
+target_include_directories(forestfire_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+add_test(NAME forestfire_tests COMMAND forestfire_tests)

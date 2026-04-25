@@ -2,6 +2,8 @@
 #include <SDL_video.h>
 #include <imgui.h>
 
+#include "Backend.h"
+
 void createWindow() {
     auto windowFlags = (SDL_WindowFlags) (SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
     window = SDL_CreateWindow("ForestFire", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
@@ -13,8 +15,10 @@ void createWindow() {
 void mainMenu() {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("Reset"))
-                initForest();
+            if (ImGui::MenuItem("Reset")) {
+                backend->prepare(currentWidth, currentHeight);
+                backend->seed(forest, START_GROWTH);
+            }
 
             if (ImGui::MenuItem("Exit", "Cmd+Q"))
                 running = false;
@@ -66,6 +70,29 @@ void initSettings(int &lastHeight, int &lastWidth, int &lastSize) {
             ImGui::EndCombo();
         }
         currentLogic = (currentItem == items[1]) ? MOORE : VON_NEUMANN;
+
+        ImGui::Separator();
+
+        const bool gpuOk = gpuBackendAvailable();
+        const char *backendItems[] = {"OpenMP (CPU)", "GPU"};
+        const char *currentBackendLabel = (requestedBackend == BackendKind::GPU) ? backendItems[1] : backendItems[0];
+
+        if (ImGui::BeginCombo("Backend", currentBackendLabel)) {
+            if (ImGui::Selectable(backendItems[0], requestedBackend == BackendKind::OpenMP))
+                requestedBackend = BackendKind::OpenMP;
+            if (gpuOk) {
+                if (ImGui::Selectable(backendItems[1], requestedBackend == BackendKind::GPU))
+                    requestedBackend = BackendKind::GPU;
+            } else {
+                ImGui::BeginDisabled();
+                ImGui::Selectable(backendItems[1], false);
+                ImGui::EndDisabled();
+            }
+            ImGui::EndCombo();
+        }
+        ImGui::TextDisabled("%s", gpuOk ? gpuBackendDescription().c_str() : "GPU unavailable");
+        if (backend)
+            ImGui::TextDisabled("Active: %s", backend->name().c_str());
 
         ImGui::Separator();
 

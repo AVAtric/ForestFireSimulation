@@ -30,7 +30,10 @@ int main(int, char **) {
         return EXIT_FAILURE;
     }
 
-    initForest();
+    backend = makeOpenMPBackend();
+    requestedBackend = BackendKind::OpenMP;
+    backend->prepare(currentWidth, currentHeight);
+    backend->seed(forest, START_GROWTH);
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -176,8 +179,22 @@ int main(int, char **) {
         if (stepwiseAnimation && !animationStep)
             calculateForest = false;
 
+        if (requestedBackend != backend->kind()) {
+            std::unique_ptr<IBackend> next;
+            if (requestedBackend == BackendKind::GPU)
+                next = makeGPUBackend();
+            if (!next) {
+                next = makeOpenMPBackend();
+                requestedBackend = BackendKind::OpenMP;
+            }
+            backend = std::move(next);
+            backend->prepare(currentWidth, currentHeight);
+            measurements.AddLog("[%s] Active backend: %s\n", "info", backend->name().c_str());
+        }
+
         if (calculateForest) {
-            stepForest(fire, growth);
+            backend->prepare(currentWidth, currentHeight);
+            backend->step(forest, fire, growth, currentLogic);
             calculateForest = false;
         }
 
