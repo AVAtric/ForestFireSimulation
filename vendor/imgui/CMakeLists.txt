@@ -2,10 +2,7 @@ message(STATUS "Fetching imgui ...")
 
 set(CMAKE_CXX_STANDARD 20)
 
-FetchContent_GetProperties(imgui)
-if (NOT imgui_POPULATED)
-    FetchContent_Populate(imgui)
-endif ()
+FetchContent_MakeAvailable(imgui)
 
 add_library(imgui
         ${imgui_SOURCE_DIR}/imgui.cpp ${imgui_SOURCE_DIR}/imgui.h
@@ -24,5 +21,3 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(imgui PRIVATE -Wno-nontrivial-memcall)
 endif ()
 target_link_libraries(imgui PUBLIC ${SDL2_LIBRARIES})
-
-FetchContent_MakeAvailable(imgui)

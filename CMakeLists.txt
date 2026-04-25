@@ -40,7 +40,7 @@ if (APPLE AND FORESTFIRE_ENABLE_METAL)
 endif ()
 
 add_library(ForestFireCore STATIC ${FORESTFIRE_CORE_SOURCES})
-target_include_directories(ForestFireCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/core)
+target_include_directories(ForestFireCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 if (MSVC)
     target_compile_options(ForestFireCore PRIVATE /openmp:llvm)
@@ -79,7 +79,6 @@ add_executable(${PROJECT_NAME}
         src/app/App.cpp
         src/app/GUI.cpp
         src/app/MeasurementsLog.cpp)
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/app)
 target_link_libraries(${PROJECT_NAME} PRIVATE ForestFireCore)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
