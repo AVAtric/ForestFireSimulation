@@ -1,9 +1,6 @@
-#include "Backend.h"
-#include "Forest.h"
+#include "App.h"
 
 #include <numeric>
-#include <queue>
-#include <vector>
 
 const int SIZE = 1;
 const int WIDTH = 1024;
@@ -11,8 +8,8 @@ const int HEIGHT = 1024;
 
 const double START_GROWTH = 0.5;
 
-const float DEFAULT_FIRE = 0.0001;
-const float DEFAULT_GROWTH = 0.03;
+const float DEFAULT_FIRE = 0.0001f;
+const float DEFAULT_GROWTH = 0.03f;
 
 const bool SPEED_CONTROL = false;
 const bool STEP_ANIMATION = false;
@@ -24,7 +21,7 @@ const ImVec4 CLEAR_COLOR = {0.94f, 0.94f, 0.94f, 1.00f};
 const SDL_Color DEFAULT_TREE_COLOR = {0, 128, 0, 255};
 const SDL_Color DEFAULT_FIRE_COLOR = {200, 0, 0, 255};
 
-const int MEASUREMENT_STEPS[] = {1, 10, 100, 1000, 10000};
+const int MEASUREMENT_STEPS[5] = {1, 10, 100, 1000, 10000};
 
 const ImVec4 RESET_TREE_COLOR = {static_cast<float>(DEFAULT_TREE_COLOR.r / 255.0),
                                  static_cast<float>(DEFAULT_TREE_COLOR.g / 255.0),
@@ -52,7 +49,7 @@ int currentStep{0};
 int maxSteps{0};
 
 float progressAllSteps{static_cast<float>(std::accumulate(std::begin(MEASUREMENT_STEPS), std::end(MEASUREMENT_STEPS), 0))};
-float progressCurrentStep{0.0};
+float progressCurrentStep{0.0f};
 
 float fire{DEFAULT_FIRE};
 float growth{DEFAULT_GROWTH};
@@ -67,7 +64,7 @@ bool limitAnimation{SPEED_CONTROL};
 bool stepwiseAnimation{STEP_ANIMATION};
 bool animationStep{STEP_ANIMATION};
 
-unsigned int lastUpdate;
+unsigned int lastUpdate{0};
 
 ImVec4 clearColor{CLEAR_COLOR};
 

@@ -1,13 +1,14 @@
 #include <SDL.h>
-#include <SDL_error.h>
-#include <SDL_events.h>
 
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
 
-#include "MeasurementsLog.cpp"
-#include "Forest.cpp"
-#include "GUI.cpp"
+#include <chrono>
+#include <cmath>
+
+#include "App.h"
+#include "GUI.h"
+#include "MeasurementsLog.h"
 
 int main(int, char **) {
     auto treeColor = DEFAULT_TREE_COLOR;
@@ -44,7 +45,6 @@ int main(int, char **) {
     ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer2_Init(renderer);
 
-    // Main loop
     unsigned int totalFrameTicks = 0;
     unsigned int totalFrames = 0;
     while (running) {
@@ -107,16 +107,12 @@ int main(int, char **) {
                 ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(0, 90, 0, 255));
 
                 if (ImGui::SmallButton("Start")) {
-                    if (!startMeasure) {
-                        start = std::chrono::high_resolution_clock::now();
-                        measureSteps = std::priority_queue<int, std::vector<int>, std::greater<>>(
-                                std::begin(MEASUREMENT_STEPS), std::end(MEASUREMENT_STEPS));
-                        startMeasure = true;
-                        nextSteps();
-                        measurements.AddLog("[%s] Measurement started!\n", "info");
-                    } else {
-                        measurements.AddLog("[%s] Measurement already started!\n", "warn");
-                    }
+                    start = std::chrono::high_resolution_clock::now();
+                    measureSteps = std::priority_queue<int, std::vector<int>, std::greater<>>(
+                            std::begin(MEASUREMENT_STEPS), std::end(MEASUREMENT_STEPS));
+                    startMeasure = true;
+                    nextSteps();
+                    measurements.AddLog("[%s] Measurement started!\n", "info");
                 }
                 ImGui::PopStyleColor(3);
             } else {
@@ -198,7 +194,6 @@ int main(int, char **) {
             calculateForest = false;
         }
 
-        // Rendering
         ImGui::Render();
 
         SDL_RenderSetScale(renderer, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
@@ -212,11 +207,10 @@ int main(int, char **) {
         for (int i = 0; i < currentWidth; ++i)
             for (int j = 0; j < currentHeight; ++j)
                 if (forest[i][j] == TREE)
-                    drawSquare(i, j, treeColor); // Green for tree
+                    drawSquare(i, j, treeColor);
                 else if (forest[i][j] == FIRE)
-                    drawSquare(i, j, fireColor); // Red for fire
+                    drawSquare(i, j, fireColor);
 
-        // End frame timing
         auto endTicks = SDL_GetTicks();
         auto endPerf = SDL_GetPerformanceCounter();
 
@@ -230,7 +224,7 @@ int main(int, char **) {
 
         if (limitAnimation) {
             auto dT = (static_cast<float>(endTicks) - static_cast<float>(lastUpdate)) / 1000.0f;
-            auto framesToUpdate = static_cast<int>(floor(dT / (1.0f / currentSpeed)));
+            auto framesToUpdate = static_cast<int>(std::floor(dT / (1.0f / currentSpeed)));
 
             if (framesToUpdate > 0) {
                 lastUpdate = endTicks;
@@ -250,7 +244,6 @@ int main(int, char **) {
             animationStep = false;
     }
 
-    // Cleanup
     ImGui_ImplSDLRenderer2_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();

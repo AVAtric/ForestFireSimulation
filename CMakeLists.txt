@@ -56,7 +56,11 @@ if (APPLE AND FORESTFIRE_ENABLE_METAL)
 endif ()
 
 # --- Application -------------------------------------------------------------
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME}
+        main.cpp
+        Forest.cpp
+        GUI.cpp
+        MeasurementsLog.cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE ForestFireCore)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")

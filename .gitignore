@@ -1,6 +1,34 @@
-# Project exclude paths
+# Build directories
+/build/
 /cmake-build-debug/
-.idea
-.claude
-_deps
-CMakeFiles
+/cmake-build-release/
+cmake-build-*/
+
+# CMake artifacts
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+compile_commands.json
+_deps/
+
+# Compiled objects / libraries
+*.o
+*.obj
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+
+# IDE
+.idea/
+.vscode/
+.cache/
+
+# Tooling
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db

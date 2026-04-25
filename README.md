@@ -160,9 +160,10 @@ Each per-backend probe (`MTLCreateSystemDefaultDevice` for Metal, `clGetPlatform
 ├── MetalBackend.mm         – Metal implementation (Apple only, ObjC++ with ARC)
 ├── OpenCLBackend.cpp       – OpenCL implementation (only active when OpenCL is found)
 ├── GPUBackend.cpp          – picks the preferred GPU backend at runtime
-├── Forest.cpp              – application/UI state (window, grid, current settings)
-├── GUI.cpp                 – ImGui windows (settings, menu, backend combo)
-├── MeasurementsLog.cpp     – ImGui log widget for benchmark output
+├── App.h / Forest.cpp      – application/UI state (window, grid, current settings)
+├── GUI.h / GUI.cpp         – ImGui windows (settings, menu, backend combo)
+├── MeasurementsLog.h /
+│   MeasurementsLog.cpp     – ImGui log widget for benchmark output
 ├── main.cpp                – SDL/ImGui main loop
 ├── tests/
 │   ├── CMakeLists.txt      – test target registered with CTest
@@ -171,7 +172,7 @@ Each per-backend probe (`MTLCreateSystemDefaultDevice` for Metal, `clGetPlatform
 └── vendor/imgui            – Dear ImGui (fetched by CMake)
 ```
 
-The simulation core (`OpenMPBackend.cpp`, `OpenCLBackend.cpp`, `Backend.h`, `Forest.h`) is built as a static library `ForestFireCore` so the test executable can link it without dragging in SDL2 or ImGui.
+The simulation core (`OpenMPBackend.cpp`, `OpenCLBackend.cpp`, `MetalBackend.mm`, `GPUBackend.cpp`, `Backend.h`, `Forest.h`) is built as a static library `ForestFireCore` so the test executable can link it without dragging in SDL2 or ImGui. The application sources (`Forest.cpp`, `GUI.cpp`, `MeasurementsLog.cpp`, `main.cpp`) link against the core and add the SDL/ImGui frontend.
 
 ## License
 

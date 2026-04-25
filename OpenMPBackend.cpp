@@ -19,10 +19,12 @@ public:
     BackendKind kind() const override { return BackendKind::OpenMP; }
 
     void prepare(int w, int h) override {
+        ensureRngs();
+        if (w == width && h == height && !nextGrid.empty())
+            return;
         width = w;
         height = h;
         nextGrid.assign(w, std::vector<CellState>(h, EMPTY));
-        ensureRngs();
     }
 
     void seed(ForestGrid &grid, double startGrowth) override {
