@@ -8,8 +8,22 @@ option(FORESTFIRE_BUILD_TESTS "Build ForestFire unit tests" ON)
 option(FORESTFIRE_ENABLE_OPENCL "Enable OpenCL GPU backend if found" ON)
 option(FORESTFIRE_ENABLE_METAL "Enable Metal GPU backend on Apple platforms" ON)
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -fopenmp")
+if (APPLE)
+    find_program(BREW_EXECUTABLE brew)
+    if (BREW_EXECUTABLE)
+        execute_process(
+                COMMAND ${BREW_EXECUTABLE} --prefix libomp
+                OUTPUT_VARIABLE LIBOMP_PREFIX
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_QUIET)
+        if (LIBOMP_PREFIX)
+            set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I${LIBOMP_PREFIX}/include"
+                    CACHE STRING "" FORCE)
+            set(OpenMP_CXX_LIB_NAMES "omp" CACHE STRING "" FORCE)
+            set(OpenMP_omp_LIBRARY "${LIBOMP_PREFIX}/lib/libomp.dylib"
+                    CACHE FILEPATH "" FORCE)
+        endif ()
+    endif ()
 endif ()
 
 include(FindPkgConfig)
@@ -83,6 +97,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${SDL2_LIBRARIES} imgui)
 
 if (WIN32)
     target_compile_definitions(${PROJECT_NAME} PRIVATE NOMINMAX _USE_MATH_DEFINES)
+    if (TARGET SDL2::SDL2main)
+        target_link_libraries(${PROJECT_NAME} PRIVATE SDL2::SDL2main)
+    endif ()
 endif ()
 
 add_subdirectory(vendor)

@@ -1,5 +1,11 @@
 #include "Backend.h"
 
+#ifndef FORESTFIRE_HAS_METAL
+bool metalBackendAvailable() { return false; }
+std::string metalBackendDescription() { return "Metal disabled at build time"; }
+std::unique_ptr<IBackend> makeMetalBackend() { return nullptr; }
+#endif
+
 bool gpuBackendAvailable() {
     if (metalBackendAvailable()) return true;
     if (openclBackendAvailable()) return true;
