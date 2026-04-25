@@ -28,6 +28,10 @@ endif ()
 add_library(ForestFireCore STATIC ${FORESTFIRE_CORE_SOURCES})
 target_include_directories(ForestFireCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/core)
 
+if (MSVC)
+    target_compile_options(ForestFireCore PRIVATE /openmp:llvm)
+endif ()
+
 find_package(OpenMP)
 if (OpenMP_CXX_FOUND)
     target_link_libraries(ForestFireCore PUBLIC OpenMP::OpenMP_CXX)

@@ -30,9 +30,12 @@ public:
     void seed(ForestGrid &grid, double startGrowth) override {
         ensureRngs();
 
-#pragma omp parallel for collapse(2) default(none) shared(grid, startGrowth)
-        for (int i = 0; i < static_cast<int>(grid.size()); ++i)
-            for (int j = 0; j < static_cast<int>(grid[0].size()); ++j) {
+        const int w = static_cast<int>(grid.size());
+        const int h = w > 0 ? static_cast<int>(grid[0].size()) : 0;
+
+#pragma omp parallel for collapse(2) default(none) shared(grid, startGrowth, w, h)
+        for (int i = 0; i < w; ++i)
+            for (int j = 0; j < h; ++j) {
                 std::uniform_real_distribution<double> dist(0.0, 1.0);
                 grid[i][j] = (dist(rngs[omp_get_thread_num()]) < startGrowth) ? TREE : EMPTY;
             }
